@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -39,7 +39,9 @@ export default function NoteEditor({
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null)
-  const [currentNoteId, setCurrentNoteId] = useState<number | null>(noteId || null)
+  const noteIdRef = useRef<number | null>(noteId || null)
+  const isSavingRef = useRef<boolean>(false)
+  const pendingChangesRef = useRef<boolean>(false)
 
   const { token, logout } = useAuth()
   const router = useRouter()
@@ -121,60 +123,62 @@ export default function NoteEditor({
     return `rgba(${r}, ${g}, ${b}, ${opacity})`
   }
 
-  const saveNote = useCallback(async () => {
+  // Simplified auto-save with global flag
+  useEffect(() => {
     if (!title.trim() && !body.trim()) return
     if (!selectedCategory) return
-    if (isSaving) return // Prevent concurrent saves
+    if (isSavingRef.current) return // Skip if already saving
 
-    setIsSaving(true)
-    setError('')
-
-    try {
-      if (currentNoteId) {
-        // Update existing note
-        console.log('Updating existing note:', currentNoteId)
-        await api.put(`/notes/${currentNoteId}/update/`, {
-          title: title.trim(),
-          body: body.trim(),
-          category: selectedCategory
-        })
-      } else {
-        // Create new note
-        console.log('Creating new note')
-        const response = await api.post('/notes/create/', {
-          title: title.trim() || 'Untitled Note',
-          body: body.trim(),
-          category: selectedCategory
-        })
-        console.log('Note created with ID:', response.data.id)
-        setCurrentNoteId(response.data.id)
-        // Note: Don't navigate away to keep user in editing mode
-      }
-      setLastSaved(new Date())
-    } catch (err: any) {
-      if (err.response?.status === 401) {
-        logout()
-        router.push('/login')
-      } else {
-        setError('Failed to save note')
-      }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [title, body, selectedCategory, currentNoteId, isSaving, logout, router])
-
-  // Auto-save effect
-  useEffect(() => {
-    if (!title && !body) return
-    if (isSaving) return // Don't set new timeout while saving
-
+    // Clear any existing timeout
     if (saveTimeout) {
       clearTimeout(saveTimeout)
     }
 
-    const timeout = setTimeout(() => {
-      if (!isSaving) { // Double-check before calling
-        saveNote()
+    // Set new timeout
+    const timeout = setTimeout(async () => {
+      // Check again before saving (in case multiple timeouts were set)
+      if (isSavingRef.current) {
+        console.log('SKIPPING: Already saving')
+        return
+      }
+      
+      isSavingRef.current = true
+      setIsSaving(true)
+      setError('')
+
+      try {
+        console.log('Save attempt - noteIdRef.current:', noteIdRef.current)
+        if (noteIdRef.current) {
+          // Update existing note
+          console.log('UPDATE PATH: Updating existing note:', noteIdRef.current)
+          await api.put(`/notes/${noteIdRef.current}/update/`, {
+            title: title.trim(),
+            body: body.trim(),
+            category: selectedCategory
+          })
+        } else {
+          // Create new note
+          console.log('CREATE PATH: Creating new note')
+          const response = await api.post('/notes/create/', {
+            title: title.trim() || 'Untitled Note',
+            body: body.trim(),
+            category: selectedCategory
+          })
+          console.log('Note created with ID:', response.data.id)
+          noteIdRef.current = response.data.id
+          console.log('noteIdRef.current after creation:', noteIdRef.current)
+        }
+        setLastSaved(new Date())
+      } catch (err: any) {
+        if (err.response?.status === 401) {
+          logout()
+          router.push('/login')
+        } else {
+          setError('Failed to save note')
+        }
+      } finally {
+        isSavingRef.current = false
+        setIsSaving(false)
       }
     }, 1500)
 
@@ -183,7 +187,7 @@ export default function NoteEditor({
     return () => {
       if (timeout) clearTimeout(timeout)
     }
-  }, [title, body, selectedCategory, saveNote, isSaving])
+  }, [title, body, selectedCategory])
 
   const formatLastSaved = () => {
     if (!lastSaved) return ''
