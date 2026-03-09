@@ -1,0 +1,337 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
+import api from '@/lib/api'
+
+interface Category {
+  id: number
+  name: string
+  color: string
+}
+
+interface NoteEditorProps {
+  noteId?: number
+  initialTitle?: string
+  initialBody?: string
+  initialCategoryId?: number
+  initialLastSaved?: string
+}
+
+export default function NoteEditor({ 
+  noteId, 
+  initialTitle = '', 
+  initialBody = '', 
+  initialCategoryId,
+  initialLastSaved
+}: NoteEditorProps) {
+  const [title, setTitle] = useState(initialTitle)
+  const [body, setBody] = useState(initialBody)
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(initialCategoryId || null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [error, setError] = useState('')
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [currentNoteId, setCurrentNoteId] = useState<number | null>(noteId || null)
+
+  const { token, logout } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!token) {
+      router.push('/login')
+      return
+    }
+    
+    fetchCategories()
+  }, [token, router])
+
+  useEffect(() => {
+    // Set first category as default when categories are loaded (only for new notes)
+    if (categories.length > 0 && selectedCategory === null && !noteId) {
+      console.log('Setting default category:', categories[0])
+      setSelectedCategory(categories[0].id)
+    }
+  }, [categories, selectedCategory, noteId])
+
+  useEffect(() => {
+    console.log('Selected category changed:', selectedCategory)
+  }, [selectedCategory])
+
+  useEffect(() => {
+    // Set initial last saved time for existing notes
+    if (initialLastSaved && !lastSaved) {
+      setLastSaved(new Date(initialLastSaved))
+    }
+  }, [initialLastSaved, lastSaved])
+
+  useEffect(() => {
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (isDropdownOpen && !target.closest('.dropdown-container')) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get('/categories/')
+      setCategories(response.data.results || response.data)
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        logout()
+        router.push('/login')
+      } else {
+        setError('Failed to load categories')
+      }
+    } finally {
+      setIsLoadingCategories(false)
+    }
+  }
+
+  const getSelectedCategoryColor = () => {
+    if (!selectedCategory) return '#957139'
+    const category = categories.find(c => c.id === selectedCategory)
+    return category?.color || '#957139'
+  }
+
+  const getCategoryColorWithOpacity = (opacity: number) => {
+    const color = getSelectedCategoryColor()
+    const hex = color.replace('#', '')
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+  }
+
+  const saveNote = async () => {
+    if (!title.trim() && !body.trim()) return
+    if (!selectedCategory) return
+
+    setIsSaving(true)
+    setError('')
+
+    try {
+      if (currentNoteId) {
+        // Update existing note
+        await api.put(`/notes/${currentNoteId}/update/`, {
+          title: title.trim(),
+          body: body.trim(),
+          category: selectedCategory
+        })
+      } else {
+        // Create new note
+        const response = await api.post('/notes/create/', {
+          title: title.trim() || 'Untitled Note',
+          body: body.trim(),
+          category: selectedCategory
+        })
+        setCurrentNoteId(response.data.id)
+        // Update URL to reflect we're now editing an existing note
+        router.replace(`/note/${response.data.id}`)
+      }
+      setLastSaved(new Date())
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        logout()
+        router.push('/login')
+      } else {
+        setError('Failed to save note')
+      }
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Auto-save effect
+  useEffect(() => {
+    if (!title && !body) return
+
+    if (saveTimeout) {
+      clearTimeout(saveTimeout)
+    }
+
+    const timeout = setTimeout(() => {
+      saveNote()
+    }, 1500)
+
+    setSaveTimeout(timeout)
+
+    return () => {
+      if (timeout) clearTimeout(timeout)
+    }
+  }, [title, body, selectedCategory])
+
+  const formatLastSaved = () => {
+    if (!lastSaved) return ''
+    return lastSaved.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#FAF1E3' }}>
+      {/* Header */}
+      <header style={{ backgroundColor: '#FAF1E3' }}>
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            {/* Custom Category Dropdown */}
+            <div className="relative dropdown-container">
+              {isLoadingCategories ? (
+                <div className="text-gray-500">Loading categories...</div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setIsDropdownOpen(!isDropdownOpen)
+                    }}
+                    className="flex items-center space-x-2 px-3 py-2 border-2 rounded-md text-black focus:outline-none focus:border-indigo-500 min-w-40"
+                    style={{ borderColor: '#957139', backgroundColor: '#FAF1E3' }}
+                  >
+                    {selectedCategory ? (
+                      <>
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: categories.find(c => c.id === selectedCategory)?.color }}
+                        ></div>
+                        <span>{categories.find(c => c.id === selectedCategory)?.name}</span>
+                        <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </>
+                    ) : (
+                      <span>Select category</span>
+                    )}
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-full border-2 rounded-md shadow-lg z-50" style={{ borderColor: '#957139', backgroundColor: '#FAF1E3' }}>
+                      {categories.map((category) => (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            console.log('Category option clicked:', category.name, category.id)
+                            setSelectedCategory(category.id)
+                            setIsDropdownOpen(false)
+                          }}
+                          className="w-full flex items-center space-x-2 px-3 py-2 text-left category-link first:rounded-t-md last:rounded-b-md"
+                        >
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          ></div>
+                          <span className="text-black">{category.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <Link href="/" className="text-gray-500 hover:text-gray-700">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-5xl mx-auto py-6 px-6">
+        {/* Big Note Card */}
+        <div 
+          className="rounded-lg shadow-lg border-2 overflow-hidden scroll-gradient-container"
+          style={{ 
+            borderColor: getSelectedCategoryColor(),
+            backgroundColor: getCategoryColorWithOpacity(0.5),
+            minHeight: '70vh'
+          }}
+        >
+          {/* Scroll gradient indicators */}
+          <div className="scroll-gradient-top"></div>
+          <div className="scroll-gradient-bottom"></div>
+          
+          <div className="p-6 h-full flex flex-col overflow-y-auto">
+            {/* Timestamp at top right */}
+            <div className="flex justify-end mb-2">
+              <div className="text-xs text-gray-600 font-medium">
+                {isSaving ? (
+                  <span>Saving...</span>
+                ) : lastSaved ? (
+                  <span>Last edit {formatLastSaved()}</span>
+                ) : (
+                  <span></span>
+                )}
+              </div>
+            </div>
+
+            {/* Title Field */}
+            <div className="mt-3 mb-3">
+              <textarea
+                placeholder="Note title..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full text-2xl font-bold text-gray-900 placeholder-gray-400 resize-none border-none outline-none bg-transparent inria-serif-bold"
+                rows={1}
+                style={{
+                  minHeight: '3rem',
+                  maxHeight: '8rem',
+                  overflow: 'hidden'
+                }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement
+                  target.style.height = 'auto'
+                  target.style.height = `${Math.min(target.scrollHeight, 128)}px`
+                }}
+              />
+            </div>
+
+            {/* Body Field */}
+            <div className="flex-1">
+              <textarea
+                placeholder="Pour your heart out..."
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                className="w-full h-full text-gray-700 placeholder-gray-400 resize-none border-none outline-none bg-transparent font-sans"
+                style={{ minHeight: '20rem' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}
