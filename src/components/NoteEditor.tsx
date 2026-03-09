@@ -124,6 +124,7 @@ export default function NoteEditor({
   const saveNote = useCallback(async () => {
     if (!title.trim() && !body.trim()) return
     if (!selectedCategory) return
+    if (isSaving) return // Prevent concurrent saves
 
     setIsSaving(true)
     setError('')
@@ -160,7 +161,7 @@ export default function NoteEditor({
     } finally {
       setIsSaving(false)
     }
-  }, [title, body, selectedCategory, currentNoteId, logout, router])
+  }, [title, body, selectedCategory, currentNoteId, isSaving, logout, router])
 
   // Auto-save effect
   useEffect(() => {
