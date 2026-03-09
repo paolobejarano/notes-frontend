@@ -201,7 +201,7 @@ export default function NoteEditor({
               {/* Custom Category Dropdown */}
               <div className="relative dropdown-container">
                 {isLoadingCategories ? (
-                  <div className="text-gray-500">Loading categories...</div>
+                  <div className="text-black">Loading categories...</div>
                 ) : (
                   <>
                     <button
@@ -212,7 +212,7 @@ export default function NoteEditor({
                         setIsDropdownOpen(!isDropdownOpen)
                       }}
                       className="flex items-center space-x-2 px-3 py-2 border-2 rounded-md text-black focus:outline-none focus:border-indigo-500"
-                      style={{ borderColor: '#957139', backgroundColor: '#FAF1E3', minWidth: '220px' }}
+                      style={{ borderColor: '#957139', backgroundColor: '#FAF1E3', minWidth: '250px' }}
                     >
                       {selectedCategory ? (
                         <>
@@ -294,7 +294,7 @@ export default function NoteEditor({
             <div className="p-6 lg:p-8 h-full flex flex-col overflow-y-auto">
               {/* Timestamp at top right */}
               <div className="flex justify-end mb-2">
-                <div className="text-xs text-gray-600 font-medium">
+                <div className="text-xs text-black font-medium">
                   {isSaving ? (
                     <span>Saving...</span>
                   ) : lastSaved ? (
@@ -332,7 +332,7 @@ export default function NoteEditor({
                   placeholder="Pour your heart out..."
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  className="w-full h-full text-gray-700 placeholder-gray-400 resize-none border-none outline-none bg-transparent font-sans"
+                  className="w-full h-full text-black placeholder-gray-400 resize-none border-none outline-none bg-transparent font-sans"
                   style={{ minHeight: '20rem' }}
                 />
               </div>
