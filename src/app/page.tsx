@@ -47,6 +47,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [hasNext, setHasNext] = useState(false)
+  const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false)
   
   const { user, token, logout, isLoading: authLoading } = useAuth()
   const router = useRouter()
@@ -171,6 +172,12 @@ export default function HomePage() {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`
   }
 
+  const getSelectedCategoryName = () => {
+    if (selectedCategory === null) return 'All Categories'
+    const category = categories.find(cat => cat.id === selectedCategory)
+    return category?.name || 'All Categories'
+  }
+
   // Show loading while auth is being resolved
   if (authLoading) {
     return (
@@ -202,13 +209,75 @@ export default function HomePage() {
           </div>
         </header>
 
+        {/* Mobile Category Dropdown */}
+        <div className="md:hidden px-4 pb-4 mt-4">
+          <div className="relative">
+            <button
+              onClick={() => setIsMobileDropdownOpen(!isMobileDropdownOpen)}
+              className="w-full custom-btn text-left flex justify-between items-center"
+            >
+              <span>{getSelectedCategoryName()}</span>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#957139">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileDropdownOpen ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"} />
+              </svg>
+            </button>
+            
+            {isMobileDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute z-10 w-full mt-2 bg-white border-2 rounded-lg shadow-lg"
+                style={{ borderColor: '#957139' }}
+              >
+                <button
+                  onClick={() => {
+                    setSelectedCategory(null)
+                    setIsMobileDropdownOpen(false)
+                  }}
+                  className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-50 ${
+                    selectedCategory === null ? 'font-bold text-primary' : 'text-black'
+                  }`}
+                >
+                  All Categories
+                </button>
+                
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => {
+                      setSelectedCategory(category.id)
+                      setIsMobileDropdownOpen(false)
+                    }}
+                    className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-50 border-t border-gray-100 ${
+                      selectedCategory === category.id ? 'font-bold text-primary' : 'text-black'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: category.color }}
+                        ></div>
+                        {category.name}
+                      </div>
+                      <span className="text-xs text-gray-500 px-2 py-1 rounded-full bg-gray-100">
+                        {category.note_count}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </div>
+        </div>
+
         <div className="flex">
-          {/* Sidebar */}
+          {/* Desktop Sidebar */}
           <motion.aside 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className="w-64 min-h-screen" 
+            className="hidden md:block w-64 min-h-screen" 
             style={{ backgroundColor: '#FAF1E3' }}
           >
             <div className="p-4">
@@ -259,7 +328,7 @@ export default function HomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.3 }}
-            className="flex-1 p-6"
+            className="flex-1 p-4 md:p-6"
           >
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -289,7 +358,7 @@ export default function HomePage() {
                   </div>
                 ) : (
                   <div 
-                    className="grid gap-3 grid-cols-3"
+                    className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
                   >
                     {notes.map((note, index) => (
                       <motion.div
