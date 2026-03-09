@@ -39,14 +39,14 @@ export default function LoginPage() {
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <Image
-                src="/sign_in.png"
+                src="/sign_up.png"
                 alt="Sign In"
                 width={120}
                 height={120}
                 priority
               />
             </div>
-            <h2 className="text-3xl font-extrabold inria-serif-bold" style={{ color: '#88642A' }}>
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold inria-serif-bold" style={{ color: '#88642A' }}>
               Yay, You're Back!
             </h2>
           </div>
@@ -115,7 +115,7 @@ export default function LoginPage() {
               disabled={isLoading}
               className="custom-btn w-full"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? 'Login' : 'Login'}
             </button>
           </div>
 

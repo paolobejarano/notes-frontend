@@ -51,14 +51,14 @@ export default function RegisterPage() {
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <Image
-                src="/sign_up.png"
+                src="/sign_in.png"
                 alt="Sign Up"
-                width={120}
-                height={120}
+                width={180}
+                height={100}
                 priority
               />
             </div>
-            <h2 className="text-3xl font-extrabold inria-serif-bold" style={{ color: '#88642A' }}>
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-extrabold inria-serif-bold" style={{ color: '#88642A' }}>
               Yay, New Friend!
             </h2>
           </div>
@@ -127,7 +127,7 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="custom-btn w-full"
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isLoading ? 'Sign Up' : 'Sign Up'}
             </button>
           </div>
 

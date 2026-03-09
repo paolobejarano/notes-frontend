@@ -181,7 +181,7 @@ export default function HomePage() {
         {/* Top Bar with New Note Button */}
         <header style={{ backgroundColor: '#FAF1E3' }}>
           <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-end items-center py-4">
+            <div className="flex justify-end items-center pt-4">
               <Link
                 href="/new-note"
                 className="custom-btn"
@@ -273,8 +273,8 @@ export default function HomePage() {
                         height={200}
                       />
                     </div>
-                    <p className="text-lg text-gray-600 mb-8">
-                      {selectedCategory ? 'No notes in this category.' : "I'm just here waiting for your charming notes..."}
+                    <p className="text-xl text-primary mb-8">
+                      {selectedCategory ? 'I’m just here waiting for your charming notes...' : "I'm just here waiting for your charming notes..."}
                     </p>
                   </div>
                 ) : (
