@@ -166,13 +166,16 @@ export default function NoteEditor({
   // Auto-save effect
   useEffect(() => {
     if (!title && !body) return
+    if (isSaving) return // Don't set new timeout while saving
 
     if (saveTimeout) {
       clearTimeout(saveTimeout)
     }
 
     const timeout = setTimeout(() => {
-      saveNote()
+      if (!isSaving) { // Double-check before calling
+        saveNote()
+      }
     }, 1500)
 
     setSaveTimeout(timeout)
@@ -180,7 +183,7 @@ export default function NoteEditor({
     return () => {
       if (timeout) clearTimeout(timeout)
     }
-  }, [title, body, selectedCategory, currentNoteId, saveNote])
+  }, [title, body, selectedCategory, currentNoteId, saveNote, isSaving])
 
   const formatLastSaved = () => {
     if (!lastSaved) return ''
