@@ -145,13 +145,13 @@ export default function HomePage() {
         
         if (noteYear === currentYear) {
           return date.toLocaleDateString('en-US', {
-            month: 'short',
+            month: 'long',
             day: 'numeric'
           })
         } else {
           return date.toLocaleDateString('en-US', {
             year: 'numeric',
-            month: 'short',
+            month: 'long',
             day: 'numeric'
           })
         }
@@ -244,7 +244,7 @@ export default function HomePage() {
                         ></div>
                         {category.name}
                       </div>
-                      <span className="text-xs text-gray-500 px-2 py-1 rounded-full">
+                      <span className="text-xs text-black px-2 py-1 rounded-full">
                         {category.note_count}
                       </span>
                     </div>
