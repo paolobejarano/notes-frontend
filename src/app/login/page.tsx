@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
+import PageTransition from '@/components/PageTransition'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -32,23 +33,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#FAF1E3' }}>
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <Image
-              src="/sign_in.png"
-              alt="Sign In"
-              width={120}
-              height={120}
-              priority
-            />
+    <PageTransition>
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#FAF1E3' }}>
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/sign_in.png"
+                alt="Sign In"
+                width={120}
+                height={120}
+                priority
+              />
+            </div>
+            <h2 className="text-3xl font-extrabold inria-serif-bold" style={{ color: '#88642A' }}>
+              Yay, You're Back!
+            </h2>
           </div>
-          <h2 className="text-3xl font-extrabold inria-serif-bold" style={{ color: '#88642A' }}>
-            Yay, You're Back!
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             {/* Email Field with Floating Label */}
             <div className="floating-label-container">
@@ -125,7 +127,8 @@ export default function LoginPage() {
             </span>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+    </PageTransition>
   )
 }

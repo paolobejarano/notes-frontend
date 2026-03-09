@@ -37,6 +37,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${inter.variable} ${inriaSerif.variable} font-sans antialiased`}
+        style={{ backgroundColor: '#FAF1E3' }}
       >
         <AuthProvider>
           {children}

@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import api from '@/lib/api'
+import PageTransition from '@/components/PageTransition'
 
 interface Category {
   id: number
@@ -190,149 +192,161 @@ export default function NoteEditor({
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#FAF1E3' }}>
-      {/* Header */}
-      <header style={{ backgroundColor: '#FAF1E3' }}>
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6 lg:py-8">
-            {/* Custom Category Dropdown */}
-            <div className="relative dropdown-container">
-              {isLoadingCategories ? (
-                <div className="text-gray-500">Loading categories...</div>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setIsDropdownOpen(!isDropdownOpen)
-                    }}
-                    className="flex items-center space-x-2 px-3 py-2 border-2 rounded-md text-black focus:outline-none focus:border-indigo-500"
-                    style={{ borderColor: '#957139', backgroundColor: '#FAF1E3', minWidth: '220px' }}
-                  >
-                    {selectedCategory ? (
-                      <>
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: categories.find(c => c.id === selectedCategory)?.color }}
-                        ></div>
-                        <span>{categories.find(c => c.id === selectedCategory)?.name}</span>
-                        <svg className="w-5 h-5 ml-auto" fill="none" stroke="#957139" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </>
-                    ) : (
-                      <span>Select category</span>
-                    )}
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  {isDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-full rounded-md shadow-lg z-50" style={{ borderColor: '#957139', backgroundColor: '#FAF1E3' }}>
-                      {categories
-                        .filter((category) => category.id !== selectedCategory)
-                        .map((category) => (
-                          <button
-                            key={category.id}
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              console.log('Category option clicked:', category.name, category.id)
-                              setSelectedCategory(category.id)
-                              setIsDropdownOpen(false)
-                            }}
-                            className="w-full flex items-center space-x-2 px-3 py-2 text-left category-link first:rounded-t-md last:rounded-b-md"
-                          >
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: category.color }}
-                            ></div>
-                            <span className="text-black">{category.name}</span>
-                          </button>
-                        ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Close Button */}
-            <Link href="/" className="hover:opacity-75" style={{ color: '#957139' }}>
-              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="pb-6 lg:pb-8 px-4 sm:px-6 lg:px-8 flex-1 flex">
-        {/* Big Note Card */}
-        <div 
-          className="rounded-lg shadow-lg border-3 overflow-hidden scroll-gradient-container w-full"
-          style={{ 
-            borderColor: getSelectedCategoryColor(),
-            backgroundColor: getCategoryColorWithOpacity(0.5),
-          }}
-        >
-          <div className="p-6 lg:p-8 h-full flex flex-col overflow-y-auto">
-            {/* Timestamp at top right */}
-            <div className="flex justify-end mb-2">
-              <div className="text-xs text-gray-600 font-medium">
-                {isSaving ? (
-                  <span>Saving...</span>
-                ) : lastSaved ? (
-                  <span>Last Edited: {formatLastSaved()}</span>
+    <PageTransition>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#FAF1E3' }}>
+        {/* Header */}
+        <header style={{ backgroundColor: '#FAF1E3' }}>
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-6 lg:py-8">
+              {/* Custom Category Dropdown */}
+              <div className="relative dropdown-container">
+                {isLoadingCategories ? (
+                  <div className="text-gray-500">Loading categories...</div>
                 ) : (
-                  <span></span>
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setIsDropdownOpen(!isDropdownOpen)
+                      }}
+                      className="flex items-center space-x-2 px-3 py-2 border-2 rounded-md text-black focus:outline-none focus:border-indigo-500"
+                      style={{ borderColor: '#957139', backgroundColor: '#FAF1E3', minWidth: '220px' }}
+                    >
+                      {selectedCategory ? (
+                        <>
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: categories.find(c => c.id === selectedCategory)?.color }}
+                          ></div>
+                          <span>{categories.find(c => c.id === selectedCategory)?.name}</span>
+                          <svg className="w-5 h-5 ml-auto" fill="none" stroke="#957139" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </>
+                      ) : (
+                        <span>Select category</span>
+                      )}
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isDropdownOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-full left-0 mt-1 w-full rounded-md shadow-lg z-50" 
+                        style={{ borderColor: '#957139', backgroundColor: '#FAF1E3' }}
+                      >
+                        {categories
+                          .filter((category) => category.id !== selectedCategory)
+                          .map((category) => (
+                            <button
+                              key={category.id}
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                console.log('Category option clicked:', category.name, category.id)
+                                setSelectedCategory(category.id)
+                                setIsDropdownOpen(false)
+                              }}
+                              className="w-full flex items-center space-x-2 px-3 py-2 text-left category-link first:rounded-t-md last:rounded-b-md"
+                            >
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: category.color }}
+                              ></div>
+                              <span className="text-black">{category.name}</span>
+                            </button>
+                          ))}
+                      </motion.div>
+                    )}
+                  </>
                 )}
               </div>
-            </div>
 
-            {/* Title Field */}
-            <div className="mt-3 mb-3">
-              <textarea
-                placeholder="Note title..."
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-2xl font-bold text-gray-900 placeholder-gray-400 resize-none border-none outline-none bg-transparent inria-serif-bold"
-                rows={1}
-                style={{
-                  minHeight: '3rem',
-                  maxHeight: '8rem',
-                  overflow: 'hidden'
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement
-                  target.style.height = 'auto'
-                  target.style.height = `${Math.min(target.scrollHeight, 128)}px`
-                }}
-              />
-            </div>
-
-            {/* Body Field */}
-            <div className="flex-1">
-              <textarea
-                placeholder="Pour your heart out..."
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                className="w-full h-full text-gray-700 placeholder-gray-400 resize-none border-none outline-none bg-transparent font-sans"
-                style={{ minHeight: '20rem' }}
-              />
+              {/* Close Button */}
+              <Link href="/" className="hover:opacity-75" style={{ color: '#957139' }}>
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Link>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="pb-6 lg:pb-8 px-4 sm:px-6 lg:px-8 flex-1 flex">
+          {/* Big Note Card */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="rounded-lg shadow-lg border-3 overflow-hidden scroll-gradient-container w-full"
+            style={{ 
+              borderColor: getSelectedCategoryColor(),
+              backgroundColor: getCategoryColorWithOpacity(0.5),
+            }}
+          >
+            <div className="p-6 lg:p-8 h-full flex flex-col overflow-y-auto">
+              {/* Timestamp at top right */}
+              <div className="flex justify-end mb-2">
+                <div className="text-xs text-gray-600 font-medium">
+                  {isSaving ? (
+                    <span>Saving...</span>
+                  ) : lastSaved ? (
+                    <span>Last Edited: {formatLastSaved()}</span>
+                  ) : (
+                    <span></span>
+                  )}
+                </div>
+              </div>
+
+              {/* Title Field */}
+              <div className="mt-3 mb-3">
+                <textarea
+                  placeholder="Note title..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-2xl font-bold text-gray-900 placeholder-gray-400 resize-none border-none outline-none bg-transparent inria-serif-bold"
+                  rows={1}
+                  style={{
+                    minHeight: '3rem',
+                    maxHeight: '8rem',
+                    overflow: 'hidden'
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement
+                    target.style.height = 'auto'
+                    target.style.height = `${Math.min(target.scrollHeight, 128)}px`
+                  }}
+                />
+              </div>
+
+              {/* Body Field */}
+              <div className="flex-1">
+                <textarea
+                  placeholder="Pour your heart out..."
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  className="w-full h-full text-gray-700 placeholder-gray-400 resize-none border-none outline-none bg-transparent font-sans"
+                  style={{ minHeight: '20rem' }}
+                />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+        </main>
+      </div>
+    </PageTransition>
   )
 }
