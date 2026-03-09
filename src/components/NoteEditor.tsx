@@ -179,18 +179,22 @@ export default function NoteEditor({
 
   const formatLastSaved = () => {
     if (!lastSaved) return ''
-    return lastSaved.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return lastSaved.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).replace(' at ', ' at ')
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FAF1E3' }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#FAF1E3' }}>
       {/* Header */}
       <header style={{ backgroundColor: '#FAF1E3' }}>
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-6 lg:py-8">
             {/* Custom Category Dropdown */}
             <div className="relative dropdown-container">
               {isLoadingCategories ? (
@@ -204,8 +208,8 @@ export default function NoteEditor({
                       e.stopPropagation()
                       setIsDropdownOpen(!isDropdownOpen)
                     }}
-                    className="flex items-center space-x-2 px-3 py-2 border-2 rounded-md text-black focus:outline-none focus:border-indigo-500 min-w-40"
-                    style={{ borderColor: '#957139', backgroundColor: '#FAF1E3' }}
+                    className="flex items-center space-x-2 px-3 py-2 border-2 rounded-md text-black focus:outline-none focus:border-indigo-500"
+                    style={{ borderColor: '#957139', backgroundColor: '#FAF1E3', minWidth: '220px' }}
                   >
                     {selectedCategory ? (
                       <>
@@ -214,8 +218,8 @@ export default function NoteEditor({
                           style={{ backgroundColor: categories.find(c => c.id === selectedCategory)?.color }}
                         ></div>
                         <span>{categories.find(c => c.id === selectedCategory)?.name}</span>
-                        <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        <svg className="w-5 h-5 ml-auto" fill="none" stroke="#957139" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                         </svg>
                       </>
                     ) : (
@@ -225,27 +229,29 @@ export default function NoteEditor({
 
                   {/* Dropdown Menu */}
                   {isDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-full border-2 rounded-md shadow-lg z-50" style={{ borderColor: '#957139', backgroundColor: '#FAF1E3' }}>
-                      {categories.map((category) => (
-                        <button
-                          key={category.id}
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            console.log('Category option clicked:', category.name, category.id)
-                            setSelectedCategory(category.id)
-                            setIsDropdownOpen(false)
-                          }}
-                          className="w-full flex items-center space-x-2 px-3 py-2 text-left category-link first:rounded-t-md last:rounded-b-md"
-                        >
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: category.color }}
-                          ></div>
-                          <span className="text-black">{category.name}</span>
-                        </button>
-                      ))}
+                    <div className="absolute top-full left-0 mt-1 w-full rounded-md shadow-lg z-50" style={{ borderColor: '#957139', backgroundColor: '#FAF1E3' }}>
+                      {categories
+                        .filter((category) => category.id !== selectedCategory)
+                        .map((category) => (
+                          <button
+                            key={category.id}
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              console.log('Category option clicked:', category.name, category.id)
+                              setSelectedCategory(category.id)
+                              setIsDropdownOpen(false)
+                            }}
+                            className="w-full flex items-center space-x-2 px-3 py-2 text-left category-link first:rounded-t-md last:rounded-b-md"
+                          >
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: category.color }}
+                            ></div>
+                            <span className="text-black">{category.name}</span>
+                          </button>
+                        ))}
                     </div>
                   )}
                 </>
@@ -253,9 +259,9 @@ export default function NoteEditor({
             </div>
 
             {/* Close Button */}
-            <Link href="/" className="text-gray-500 hover:text-gray-700">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <Link href="/" className="hover:opacity-75" style={{ color: '#957139' }}>
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </Link>
           </div>
@@ -263,28 +269,23 @@ export default function NoteEditor({
       </header>
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto py-6 px-6">
+      <main className="pb-6 lg:pb-8 px-4 sm:px-6 lg:px-8 flex-1 flex">
         {/* Big Note Card */}
         <div 
-          className="rounded-lg shadow-lg border-2 overflow-hidden scroll-gradient-container"
+          className="rounded-lg shadow-lg border-3 overflow-hidden scroll-gradient-container w-full"
           style={{ 
             borderColor: getSelectedCategoryColor(),
             backgroundColor: getCategoryColorWithOpacity(0.5),
-            minHeight: '70vh'
           }}
         >
-          {/* Scroll gradient indicators */}
-          <div className="scroll-gradient-top"></div>
-          <div className="scroll-gradient-bottom"></div>
-          
-          <div className="p-6 h-full flex flex-col overflow-y-auto">
+          <div className="p-6 lg:p-8 h-full flex flex-col overflow-y-auto">
             {/* Timestamp at top right */}
             <div className="flex justify-end mb-2">
               <div className="text-xs text-gray-600 font-medium">
                 {isSaving ? (
                   <span>Saving...</span>
                 ) : lastSaved ? (
-                  <span>Last edit {formatLastSaved()}</span>
+                  <span>Last Edited: {formatLastSaved()}</span>
                 ) : (
                   <span></span>
                 )}
