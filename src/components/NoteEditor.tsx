@@ -183,7 +183,7 @@ export default function NoteEditor({
     return () => {
       if (timeout) clearTimeout(timeout)
     }
-  }, [title, body, selectedCategory, currentNoteId, saveNote, isSaving])
+  }, [title, body, selectedCategory, saveNote, isSaving])
 
   const formatLastSaved = () => {
     if (!lastSaved) return ''
