@@ -149,7 +149,7 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-50%) !important;
   background-color: #FAF1E3 !important;
   padding: 0 0.25rem !important;
-  color: #6b7280 !important;
+  color: black !important;
   font-size: 0.875rem !important;
   pointer-events: none !important;
   transition: all 0.2s ease-in-out !important;
@@ -176,7 +176,7 @@ h1, h2, h3, h4, h5, h6 {
   background-color: transparent !important;
   color: #957139 !important;
   font-weight: 700 !important; /* Bold text */
-  font-size: 0.875rem !important;
+  font-size: 1rem !important;
   text-decoration: none !important;
   transition: all 0.2s ease-in-out !important;
   cursor: pointer !important;
