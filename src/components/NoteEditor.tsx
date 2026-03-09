@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -121,7 +121,7 @@ export default function NoteEditor({
     return `rgba(${r}, ${g}, ${b}, ${opacity})`
   }
 
-  const saveNote = async () => {
+  const saveNote = useCallback(async () => {
     if (!title.trim() && !body.trim()) return
     if (!selectedCategory) return
 
@@ -131,6 +131,7 @@ export default function NoteEditor({
     try {
       if (currentNoteId) {
         // Update existing note
+        console.log('Updating existing note:', currentNoteId)
         await api.put(`/notes/${currentNoteId}/update/`, {
           title: title.trim(),
           body: body.trim(),
@@ -138,14 +139,15 @@ export default function NoteEditor({
         })
       } else {
         // Create new note
+        console.log('Creating new note')
         const response = await api.post('/notes/create/', {
           title: title.trim() || 'Untitled Note',
           body: body.trim(),
           category: selectedCategory
         })
+        console.log('Note created with ID:', response.data.id)
         setCurrentNoteId(response.data.id)
-        // Update URL to reflect we're now editing an existing note
-        router.replace(`/note/${response.data.id}`)
+        // Note: Don't navigate away to keep user in editing mode
       }
       setLastSaved(new Date())
     } catch (err: any) {
@@ -158,7 +160,7 @@ export default function NoteEditor({
     } finally {
       setIsSaving(false)
     }
-  }
+  }, [title, body, selectedCategory, currentNoteId, logout, router])
 
   // Auto-save effect
   useEffect(() => {
@@ -177,7 +179,7 @@ export default function NoteEditor({
     return () => {
       if (timeout) clearTimeout(timeout)
     }
-  }, [title, body, selectedCategory])
+  }, [title, body, selectedCategory, currentNoteId, saveNote])
 
   const formatLastSaved = () => {
     if (!lastSaved) return ''
@@ -311,7 +313,7 @@ export default function NoteEditor({
                   placeholder="Note title..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full text-2xl font-bold text-gray-900 placeholder-gray-400 resize-none border-none outline-none bg-transparent inria-serif-bold"
+                  className="w-full text-2xl font-bold text-black placeholder-black resize-none border-none outline-none bg-transparent inria-serif-bold"
                   rows={1}
                   style={{
                     minHeight: '3rem',
@@ -332,7 +334,7 @@ export default function NoteEditor({
                   placeholder="Pour your heart out..."
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  className="w-full h-full text-black placeholder-gray-400 resize-none border-none outline-none bg-transparent font-sans"
+                  className="w-full h-full text-black placeholder-black resize-none border-none outline-none bg-transparent font-sans"
                   style={{ minHeight: '20rem' }}
                 />
               </div>
