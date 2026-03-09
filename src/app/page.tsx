@@ -140,11 +140,21 @@ export default function HomePage() {
       } else if (noteDate.getTime() === yesterday.getTime()) {
         return 'Yesterday'
       } else {
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        })
+        const currentYear = now.getFullYear()
+        const noteYear = date.getFullYear()
+        
+        if (noteYear === currentYear) {
+          return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+          })
+        } else {
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })
+        }
       }
     } catch (error) {
       console.error('Date parsing error:', error, 'for date:', dateString)
@@ -279,7 +289,7 @@ export default function HomePage() {
                   </div>
                 ) : (
                   <div 
-                    className="grid gap-6 grid-cols-3"
+                    className="grid gap-3 grid-cols-3"
                   >
                     {notes.map((note, index) => (
                       <motion.div
@@ -298,22 +308,22 @@ export default function HomePage() {
                       >
                         <div className="p-4 flex-1 flex flex-col">
                           {/* Date and Category at top */}
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="text-xs text-gray-500 font-medium">
+                          <div className="flex gap-2 mb-3">
+                            <div className="text-xs text-black font-bold">
                               {formatDate(note.updated_at)}
                             </div>
-                            <div className="text-xs text-gray-500 font-medium">
+                            <div className="text-xs text-black">
                               {note.category.name}
                             </div>
                           </div>
                           
                           {/* Title */}
-                          <h3 className="text-base font-semibold text-gray-900 line-clamp-2 mb-3">
+                          <h2 className="font-bold text-black line-clamp-2 mb-3">
                             {note.title}
-                          </h3>
+                          </h2>
                           
                           {/* Body */}
-                          <div className="text-sm text-gray-600 flex-1 overflow-hidden">
+                          <div className="text-sm text-black flex-1 overflow-hidden">
                             <div className="whitespace-pre-wrap break-words line-clamp-4">
                               {note.body}
                             </div>
